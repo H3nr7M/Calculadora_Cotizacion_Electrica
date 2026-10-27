@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="es" class="h-full bg-slate-900">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cotizador de Instalaciones Eléctricas Residenciales</title>
+    <!-- Tailwind CSS desde CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome para iconos -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Font Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#f0f9ff',
+                            500: '#0284c7',
+                            600: '#0369a1',
+                            700: '#075985',
+                            accent: '#f59e0b'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Custom scrollbar for better visual integration */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #475569;
+        }
+    </style>
+</head>
+<body class="font-sans antialiased text-slate-200 min-h-full flex flex-col justify-between bg-slate-900 selection:bg-amber-500 selection:text-slate-900">
+
+    <!-- Header / Navbar -->
+    <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <div class="p-2 bg-amber-500/10 border border-amber-500/20 rounded-xl text-amber-500">
+                    <i class="fa-solid font-bold fa-bolt text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-lg text-slate-100 leading-tight">ElectroQuote Pro</h1>
+                    <p class="text-xs text-slate-400">Cotizador de Instalaciones Eléctricas</p>
+                </div>
+            </div>
+            <button id="toggleConfigBtn" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 py-2 px-3 rounded-lg border border-slate-700 transition flex items-center gap-2">
+                <i class="fa-solid fa-sliders"></i>
+                <span class="hidden sm:inline">Ajustar Precios Base</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Modal para Configuración de Precios Unitarios -->
+    <div id="configModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 max-w-lg w-full shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center border-b border-slate-700 pb-3">
+                <h3 class="text-lg font-semibold text-slate-100 flex items-center gap-2">
+                    <i class="fa-solid fa-gear text-amber-500"></i> Precios Unitarios (Material + M.O)
+                </h3>
+                <button id="closeConfigBtn" class="text-slate-400 hover:text-white text-xl">&times;</button>
+            </div>
+            <p class="text-xs text-slate-400">Modifica los costos unitarios (en Moneda Local) para recalcular el presupuesto general automáticamente.</p>
+            
+            <div class="space-y-3 text-sm">
+                <h4 class="text-amber-400 font-medium text-xs uppercase tracking-wider">Cables (por metro)</h4>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-slate-400 text-xs mb-1">Calibre 14 ($/m)</label>
+                        <input type="number" id="p_c14" class="unit-price-input bg-slate-900 border border-slate-700 rounded-lg p-2 text-white w-full">
+                    </div>
+                    <div>
+                        <label class="block text-slate-400 text-xs mb-1">Calibre 12 ($/m)</label>
+                        <input type="number" id="p_c12" class="unit-price-input bg-slate-900 border border-slate-700 rounded-lg p-2 text-white w-full">
+                    </div>
+                    <div>
+                        <label class="block text-slate-400 text-xs mb-1">Calibre 10 ($/m)</label>
+                        <input type="number" id="p_c10" class="unit-price-input bg-slate-900 border border-slate-700 rounded-lg p-2 text-white w-full">
+                    </div>
+                    <div>
+                        <label class="block text-slate-400 text-xs mb-1">Calibre 8 ($/m)</label>
+                        <input type="number" id="p_c8" class="unit-price-input bg-slate-900 border border-slate-700 rounded-lg p-2 text-white w-full">
+                    </div>
+                </div>
+
+                <h4 class="text-amber-400 font-medium text-xs uppercase tracking-wider pt-2">Puntos y Accesorios (por unidad)</h4>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-slate-400 text-xs mb-1">Contactos 110V ($/ud)</label>
+                        <input type="number" id="p_out110" class="unit-price-input bg-slate-900 border border-slate-700 rounded-lg p-2 text-white w-full">
+                    </div>
+                    <div>
+                        <label class="block text-slate-400 text-xs mb-1">Contactos 220V ($/ud)</label>
+                        <input type="number" id="p_out220" class="unit-price-input bg-slate-900 border border-slate-700 rounded-lg p-2 text-white w-full">
+                    </div>
+                    <div>
+                        <label class="block text-slate-400 text-xs mb-1">Apagadores ($/ud)</label>
+                        <input type="number" id="p_switches" class="unit-price-input bg-slate-900 border border-slate-700 rounded-lg p-2 text-white w-full">
+                    </div>
+                    <div>
+                        <label class="block text-slate-400 text-xs mb-1">Luminarias/Lámparas ($/ud)</label>
+                        <input type="number" id="p_lights" class="unit-price-input bg-slate-900 border border-slate-700 rounded-lg p-2 text-white w-full">
+                    </div>
+                </div>
+
+                <h4 class="text-amber-400 font-medium text-xs uppercase tracking-wider pt-2">Mano de Obra & Adicionales</h4>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-slate-400 text-xs mb-1">M.O. por Metro de Cable ($)</label>
+                        <input type="number" id="p_mo_meter" class="unit-price-input bg-slate-900 border border-slate-700 rounded-lg p-2 text-white w-full">
+                    </div>
+                    <div>
+                        <label class="block text-slate-400 text-xs mb-1">M.O. por Punto/Salida ($)</label>
+                        <input type="number" id="p_mo_point" class="unit-price-input bg-slate-900 border border-slate-700 rounded-lg p-2 text-white w-full">
+                    </div>
+                    <div>
+                        <label class="block text-slate-400 text-xs mb-1">Caja Centro de Carga ($)</label>
+                        <input type="number" id="p_panel" class="unit-price-input bg-slate-900 border border-slate-700 rounded-lg p-2 text-white w-full">
+                    </div>
+                    <div>
+                        <label class="block text-slate-400 text-xs mb-1">Breakers/Pastillas ($/ud)</label>
+                        <input type="number" id="p_breakers" class="unit-price-input bg-slate-900 border border-slate-700 rounded-lg p-2 text-white w-full">
+                    </div>
+                </div>
+            </div>
+
+            <div class="pt-3 flex justify-end">
+                <button id="saveConfigBtn" class="bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold py-2 px-4 rounded-xl text-sm transition">
+                    Guardar Cambios
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Container -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full flex-grow">
+        
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            
+            <!-- Left Side: Form Inputs -->
+            <div class="lg:col-span-7 space-y-6">
+                
+                <!-- Client Info Card -->
+                <div class="bg-slate-800/50 border border-slate-800 rounded-2xl p-6 shadow-xl">
+                    <h2 class="text-base font-semibold text-slate-100 mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-user text-sky-400"></i> Datos del Cliente y Proyecto
+                    </h2>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-medium text-slate-400 mb-1">Nombre del Cliente</label>
+                            <input type="text" id="clientName" placeholder="Ej. Ing. Carlos Mendoza" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-sky-500 transition">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-400 mb-1">Ubicación / Dirección</label>
+                            <input type="text" id="clientLocation" placeholder="Ej. Fracc. Vista Hermosa" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-sky-500 transition">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section 1: Cables -->
+                <div class="bg-slate-800/50 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
+                    <h2 class="text-base font-semibold text-slate-100 flex items-center gap-2">
+                        <i class="fa-solid fa-plug text-amber-400"></i> Cableado Eléctrico (Metros Est.)
+                    </h2>
+                    
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs text-slate-400 mb-1">Cable Calibre 14 (Alumbrado)</label>
+                            <div class="relative">
+                                <input type="number" id="c14" min="0" value="0" class="calc-trigger w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-amber-500 transition pl-3 pr-10">
+                                <span class="absolute right-3 top-2 text-xs text-slate-500">mts</span>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs text-slate-400 mb-1">Cable Calibre 12 (Contactos Std)</label>
+                            <div class="relative">
+                                <input type="number" id="c12" min="0" value="0" class="calc-trigger w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-amber-500 transition pl-3 pr-10">
+                                <span class="absolute right-3 top-2 text-xs text-slate-500">mts</span>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs text-slate-400 mb-1">Cable Calibre 10 (A/A, Estufas)</label>
+                            <div class="relative">
+                                <input type="number" id="c10" min="0" value="0" class="calc-trigger w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-amber-500 transition pl-3 pr-10">
+                                <span class="absolute right-3 top-2 text-xs text-slate-500">mts</span>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs text-slate-400 mb-1">Cable Calibre 8 (Acometida/Alimentación)</label>
+                            <div class="relative">
+                                <input type="number" id="c8" min="0" value="0" class="calc-trigger w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-amber-500 transition pl-3 pr-10">
+                                <span class="absolute right-3 top-2 text-xs text-slate-500">mts</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section 2: Outlets & Switches -->
+                <div class="bg-slate-800/50 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
+                    <h2 class="text-base font-semibold text-slate-100 flex items-center gap-2">
+                        <i class="fa-solid fa-toggle-on text-emerald-400"></i> Salidas y Puntos Eléctricos
+                    </h2>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs text-slate-400 mb-1">Contactos Duplex 110V</label>
+                            <input type="number" id="outlets110" min="0" value="0" class="calc-trigger w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-emerald-500 transition">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs text-slate-400 mb-1">Contactos Especiales 220V</label>
+                            <input type="number" id="outlets220" min="0" value="0" class="calc-trigger w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-emerald-500 transition">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs text-slate-400 mb-1">Apagadores (Sencillo/3-Way)</label>
+                            <input type="number" id="switches" min="0" value="0" class="calc-trigger w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-emerald-500 transition">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs text-slate-400 mb-1">Luminarias / Spot / Botes</label>
+                            <input type="number" id="lights" min="0" value="0" class="calc-trigger w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-emerald-500 transition">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section 3: Distribution Panel & Extra -->
+                <div class="bg-slate-800/50 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
+                    <h2 class="text-base font-semibold text-slate-100 flex items-center gap-2">
+                        <i class="fa-solid fa-box-archive text-purple-400"></i> Protección y Distribución
+                    </h2>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs text-slate-400 mb-1">Centro de Carga (Gabinete)</label>
+                            <input type="number" id="panels" min="0" value="0" class="calc-trigger w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-purple-500 transition">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs text-slate-400 mb-1">Interruptores Termomagnéticos</label>
+                            <input type="number" id="breakers" min="0" value="0" class="calc-trigger w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-purple-500 transition">
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Right Side: Live Budget Breakdown -->
+            <div class="lg:col-span-5">
+                <div class="sticky top-24 bg-slate-800 border border-slate-700 rounded-2xl p-6 shadow-2xl space-y-6">
+                    <div class="flex justify-between items-center border-b border-slate-700 pb-4">
+                        <h2 class="text-lg font-bold text-slate-100">Resumen del Presupuesto</h2>
+                        <span class="text-xs bg-amber-500/10 text-amber-400 border border-amber-500/20 px-2.5 py-1 rounded-full font-medium">Estimación Téchnica</span>
+                    </div>
+
+                    <!-- Financial Summary Cards -->
+                    <div class="space-y-3">
+                        <div class="flex justify-between items-center p-3 rounded-xl bg-slate-900/60 border border-slate-700/50">
+                            <div>
+                                <p class="text-xs text-slate-400">Subtotal Materiales</p>
+                                <p class="text-xs text-slate-500">Cables, salidas, tableros</p>
+                            </div>
+                            <span id="subtotalMaterials" class="text-base font-semibold text-slate-200">$0.00</span>
+                        </div>
+
+                        <div class="flex justify-between items-center p-3 rounded-xl bg-slate-900/60 border border-slate-700/50">
+                            <div>
+                                <p class="text-xs text-slate-400">Subtotal Mano de Obra</p>
+                                <p class="text-xs text-slate-500">Instalación y conexionado</p>
+                            </div>
+                            <span id="subtotalLabor" class="text-base font-semibold text-slate-200">$0.00</span>
+                        </div>
+
+                        <div class="p-4 rounded-xl bg-gradient-to-br from-amber-500/10 to-amber-600/5 border border-amber-500/30 flex justify-between items-center">
+                            <div>
+                                <p class="text-xs font-semibold text-amber-400 uppercase tracking-wider">Total Estimado</p>
+                                <p class="text-xs text-slate-400">IVA no incluido</p>
+                            </div>
+                            <span id="grandTotal" class="text-2xl font-extrabold text-amber-400">$0.00</span>
+                        </div>
+                    </div>
+
+                    <!-- Mini Breakdown metrics -->
+                    <div class="grid grid-cols-2 gap-2 text-center text-xs py-2 border-y border-slate-700/50">
+                        <div class="p-2 bg-slate-900/30 rounded-lg">
+                            <span class="text-slate-400 block">Total Cable</span>
+                            <span id="totalMeters" class="font-semibold text-slate-200">0 mts</span>
+                        </div>
+                        <div class="p-2 bg-slate-900/30 rounded-lg">
+                            <span class="text-slate-400 block">Puntos Eléctricos</span>
+                            <span id="totalPoints" class="font-semibold text-slate-200">0 uds</span>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="space-y-2 pt-2">
+                        <button id="sendWhatsappBtn" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-semibold py-3 px-4 rounded-xl shadow-lg shadow-emerald-900/30 transition flex items-center justify-center gap-2 text-sm">
+                            <i class="fa-brands fa-whatsapp text-lg"></i>
+                            Enviar Cotización por WhatsApp
+                        </button>
+                        
+                        <button id="copySummaryBtn" class="w-full bg-slate-700 hover:bg-slate-600 text-slate-200 font-semibold py-2.5 px-4 rounded-xl transition flex items-center justify-center gap-2 text-xs border border-slate-600">
+                            <i class="fa-regular fa-copy"></i>
+                            Copiar Texto Completo
+                        </button>
+                    </div>
+
+                    <div id="statusMessage" class="hidden text-center text-xs text-emerald-400 font-medium py-1">
+                        ¡Copiado al portapapeles con éxito!
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-slate-800 bg-slate-900/50 py-6 text-center text-xs text-slate-500">
+        <p>© <span id="year"></span> ElectroQuote - Herramienta de Cotización Técnica Residencial.</p>
+    </footer>
+
+    <!-- JavaScript Application Logic -->
+    <script>
+        // Default Unit Prices Configuration
+        let prices = {
+            c14: 12.5,       // Costo por metro
+            c12: 18.0,
+            c10: 28.0,
+            c8: 45.0,
+            out110: 45.0,    // Material salida/contacto
+            out220: 85.0,
+            switches: 40.0,
+            lights: 35.0,
+            panel: 450.0,
+            breakers: 120.0,
+            mo_meter: 15.0,  // Mano de obra por metro de cable tirado
+            mo_point: 120.0  // Mano de obra por instalacion de punto/salida
+        };
+
+        // DOM Elements
+        const inputs = document.querySelectorAll('.calc-trigger');
+        const modal = document.getElementById('configModal');
+        const toggleConfigBtn = document.getElementById('toggleConfigBtn');
+        const closeConfigBtn = document.getElementById('closeConfigBtn');
+        const saveConfigBtn = document.getElementById('saveConfigBtn');
+        const sendWhatsappBtn = document.getElementById('sendWhatsappBtn');
+        const copySummaryBtn = document.getElementById('copySummaryBtn');
+        const statusMessage = document.getElementById('statusMessage');
+
+        // Initialize Year in Footer
+        document.getElementById('year').textContent = new Date().getFullYear();
+
+        // Populate Config Inputs
+        function loadConfigForm() {
+            document.getElementById('p_c14').value = prices.c14;
+            document.getElementById('p_c12').value = prices.c12;
+            document.getElementById('p_c10').value = prices.c10;
+            document.getElementById('p_c8').value = prices.c8;
+            document.getElementById('p_out110').value = prices.out110;
+            document.getElementById('p_out220').value = prices.out220;
+            document.getElementById('p_switches').value = prices.switches;
+            document.getElementById('p_lights').value = prices.lights;
+            document.getElementById('p_panel').value = prices.panel;
+            document.getElementById('p_breakers').value = prices.breakers;
+            document.getElementById('p_mo_meter').value = prices.mo_meter;
+            document.getElementById('p_mo_point').value = prices.mo_point;
+        }
+
+        // Save Modal Configuration
+        saveConfigBtn.addEventListener('click', () => {
+            prices.c14 = parseFloat(document.getElementById('p_c14').value) || 0;
+            prices.c12 = parseFloat(document.getElementById('p_c12').value) || 0;
+            prices.c10 = parseFloat(document.getElementById('p_c10').value) || 0;
+            prices.c8 = parseFloat(document.getElementById('p_c8').value) || 0;
+            prices.out110 = parseFloat(document.getElementById('p_out110').value) || 0;
+            prices.out220 = parseFloat(document.getElementById('p_out220').value) || 0;
+            prices.switches = parseFloat(document.getElementById('p_switches').value) || 0;
+            prices.lights = parseFloat(document.getElementById('p_lights').value) || 0;
+            prices.panel = parseFloat(document.getElementById('p_panel').value) || 0;
+            prices.breakers = parseFloat(document.getElementById('p_breakers').value) || 0;
+            prices.mo_meter = parseFloat(document.getElementById('p_mo_meter').value) || 0;
+            prices.mo_point = parseFloat(document.getElementById('p_mo_point').value) || 0;
+
+            modal.classList.add('hidden');
+            calculateBudget();
+        });
+
+        // Toggle Modal
+        toggleConfigBtn.addEventListener('click', () => {
+            loadConfigForm();
+            modal.classList.remove('hidden');
+        });
+
+        closeConfigBtn.addEventListener('click', () => {
+            modal.classList.add('hidden');
+        });
+
+        // Main Calculation Function
+        function calculateBudget() {
+            // Retrieve Quantities
+            const c14 = parseFloat(document.getElementById('c14').value) || 0;
+            const c12 = parseFloat(document.getElementById('c12').value) || 0;
+            const c10 = parseFloat(document.getElementById('c10').value) || 0;
+            const c8 = parseFloat(document.getElementById('c8').value) || 0;
+
+            const out110 = parseFloat(document.getElementById('outlets110').value) || 0;
+            const out220 = parseFloat(document.getElementById('outlets220').value) || 0;
+            const switches = parseFloat(document.getElementById('switches').value) || 0;
+            const lights = parseFloat(document.getElementById('lights').value) || 0;
+
+            const panels = parseFloat(document.getElementById('panels').value) || 0;
+            const breakers = parseFloat(document.getElementById('breakers').value) || 0;
+
+            // Compute Totals & Metrics
+            const totalMeters = c14 + c12 + c10 + c8;
+            const totalPoints = out110 + out220 + switches + lights;
+
+            // Materials Subtotal
+            const matCables = (c14 * prices.c14) + (c12 * prices.c12) + (c10 * prices.c10) + (c8 * prices.c8);
+            const matOutlets = (out110 * prices.out110) + (out220 * prices.out220) + (switches * prices.switches) + (lights * prices.lights);
+            const matPanels = (panels * prices.panel) + (breakers * prices.breakers);
+            
+            const subtotalMaterials = matCables + matOutlets + matPanels;
+
+            // Labor Subtotal
+            const laborFromMeters = totalMeters * prices.mo_meter;
+            const laborFromPoints = totalPoints * prices.mo_point;
+            const laborFromPanels = (panels * 350) + (breakers * 80); // Standard installation fees for boxes/breakers
+            
+            const subtotalLabor = laborFromMeters + laborFromPoints + laborFromPanels;
+
+            // Grand Total
+            const grandTotal = subtotalMaterials + subtotalLabor;
+
+            // Format Currency Helper
+            const fmt = (num) => '$' + num.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+            // Update UI
+            document.getElementById('subtotalMaterials').textContent = fmt(subtotalMaterials);
+            document.getElementById('subtotalLabor').textContent = fmt(subtotalLabor);
+            document.getElementById('grandTotal').textContent = fmt(grandTotal);
+
+            document.getElementById('totalMeters').textContent = `${totalMeters} mts`;
+            document.getElementById('totalPoints').textContent = `${totalPoints} uds`;
+
+            return {
+                clientName: document.getElementById('clientName').value || 'Cliente',
+                clientLocation: document.getElementById('clientLocation').value || 'No especificada',
+                totalMeters,
+                totalPoints,
+                subtotalMaterials,
+                subtotalLabor,
+                grandTotal
+            };
+        }
+
+        // Generate Summary Text for Output
+        function buildSummaryText() {
+            const data = calculateBudget();
+            const fmt = (num) => '$' + num.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+            return `⚡ *PRESUPUESTO DE INSTALACIÓN ELÉCTRICA* ⚡\n` +
+                   `👤 *Cliente:* ${data.clientName}\n` +
+                   `📍 *Ubicación:* ${data.clientLocation}\n` +
+                   `----------------------------------\n` +
+                   `📏 *Total Cableado:* ${data.totalMeters} metros\n` +
+                   `🔌 *Puntos/Salidas:* ${data.totalPoints} unidades\n` +
+                   `----------------------------------\n` +
+                   `📦 *Subtotal Materiales:* ${fmt(data.subtotalMaterials)}\n` +
+                   `🛠️ *Subtotal Mano de Obra:* ${fmt(data.subtotalLabor)}\n` +
+                   `💰 *TOTAL ESTIMADO:* ${fmt(data.grandTotal)}\n` +
+                   `----------------------------------\n` +
+                   `*Nota:* Este presupuesto es una estimación técnica preliminar sujeto a verificación física en obra.`;
+        }
+
+        // Attach Calculation Triggers
+        inputs.forEach(input => {
+            input.addEventListener('input', calculateBudget);
+        });
+
+        document.getElementById('clientName').addEventListener('input', calculateBudget);
+        document.getElementById('clientLocation').addEventListener('input', calculateBudget);
+
+        // Copy Text Action
+        copySummaryBtn.addEventListener('click', () => {
+            const text = buildSummaryText();
+            
+            // Clipboard fallback mechanism
+            const textArea = document.createElement("textarea");
+            textArea.value = text;
+            document.body.appendChild(textArea);
+            textArea.select();
+            try {
+                document.execCommand('copy');
+                statusMessage.classList.remove('hidden');
+                setTimeout(() => statusMessage.classList.add('hidden'), 3000);
+            } catch (err) {
+                console.error('Error al copiar: ', err);
+            }
+            document.body.removeChild(textArea);
+        });
+
+        // WhatsApp Direct Link
+        sendWhatsappBtn.addEventListener('click', () => {
+            const text = buildSummaryText();
+            const encodedText = encodeURIComponent(text);
+            window.open(`https://api.whatsapp.com/send?text=${encodedText}`, '_blank');
+        });
+
+        // Initial Calculation Run
+        calculateBudget();
+    </script>
+</body>
+</html>
